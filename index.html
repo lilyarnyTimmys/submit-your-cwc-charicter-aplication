@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Submission Form</title>
+		<style>
+			body{font-family:Arial,Helvetica,sans-serif;margin:28px}
+			form{max-width:520px;margin:0 auto;padding:18px;border:1px solid #ddd;border-radius:8px}
+			label{display:block;margin:12px 0 6px}
+			input[type=text],input[type=email],textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
+			button{margin-top:12px;padding:10px 14px;border:none;background:#0066cc;color:#fff;border-radius:4px}
+			.note{font-size:0.9rem;color:#444}
+			.flash{max-width:520px;margin:14px auto;padding:10px;border-radius:6px}
+			.ok{background:#e6fff2;border:1px solid #b6f0cf}
+			.err{background:#fff1f0;border:1px solid #f0b6b6}
+		</style>
+	</head>
+	<body>
+		<h1>Character Submission</h1>
+
+		<div id="message"></div>
+
+		<form id="submissionForm">
+			<label for="name">Your name</label>
+			<input id="name" name="name" type="text" required maxlength="100" />
+
+			<label for="character">Character you want to be</label>
+			<input id="character" name="character" type="text" required maxlength="150" />
+
+			<label for="contact">Email or Discord (how we can reach you)</label>
+			<input id="contact" name="contact" type="text" required maxlength="200" placeholder="email@example.com or Discord#1234" />
+
+			<!-- honeypot to deter bots (hidden from users) -->
+			<div style="display:none;">
+				<label>Leave this empty</label>
+				<input name="website" type="text" />
+			</div>
+
+			<p class="note">We will send your submission to the project owner. Make sure your contact is correct.</p>
+
+			<button type="submit">Send Submission</button>
+		</form>
+
+		<script>
+			document.getElementById('submissionForm').addEventListener('submit', async (e) => {
+				e.preventDefault();
+				
+				const websiteField = document.querySelector('input[name="website"]').value;
+				if (websiteField) {
+					showMessage('Bot detected!', false);
+					return;
+				}
+
+				const formData = {
+					name: document.getElementById('name').value,
+					character: document.getElementById('character').value,
+					contact: document.getElementById('contact').value,
+					timestamp: new Date().toISOString()
+				};
+
+				try {
+					const response = await fetch('https://formspree.io/f/mrbnlzqo', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(formData)
+					});
+
+					if (response.ok) {
+						showMessage('✓ Submission sent successfully!', true);
+						document.getElementById('submissionForm').reset();
+					} else {
+						showMessage('✗ Error sending submission. Please try again.', false);
+					}
+				} catch (error) {
+					showMessage('✗ Error: ' + error.message, false);
+				}
+			});
+
+			function showMessage(text, isSuccess) {
+				const messageDiv = document.getElementById('message');
+				messageDiv.textContent = text;
+				messageDiv.className = 'flash ' + (isSuccess ? 'ok' : 'err');
+			}
+		</script>
+  </body>
+</html>
